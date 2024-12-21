@@ -10,6 +10,7 @@ class LoginForm extends Component {
     password: '',
     showSubmitError: false,
     errorMsg: '',
+    isGuestLoginAccess: false,
   }
 
   onChangeUsername = event => {
@@ -33,9 +34,18 @@ class LoginForm extends Component {
     this.setState({showSubmitError: true, errorMsg})
   }
 
+  onClickGuestLogin = () => {
+    this.setState({isGuestLoginAccess: true})
+  }
+
   submitForm = async event => {
     event.preventDefault()
-    const {username, password} = this.state
+    const {username, password, isGuestLoginAccess} = this.state
+    if (isGuestLoginAccess) {
+      this.setState({username: 'rahul', password: 'rahul@2021'})
+    } else {
+      const userDetails = {username, password}
+    }
     const userDetails = {username, password}
     const url = 'https://apis.ccbp.in/login'
     const options = {
@@ -44,7 +54,7 @@ class LoginForm extends Component {
     }
     const response = await fetch(url, options)
     const data = await response.json()
-    if (response.ok === true) {
+    if ((response.ok === true && isGuestLoginAccess) || response.ok) {
       this.onSubmitSuccess(data.jwt_token)
     } else {
       this.onSubmitFailure(data.error_msg)
@@ -92,7 +102,7 @@ class LoginForm extends Component {
   }
 
   render() {
-    const {showSubmitError, errorMsg} = this.state
+    const {showSubmitError, errorMsg, isGuestLoginAccess} = this.state
     const jwtToken = Cookies.get('jwt_token')
 
     if (jwtToken !== undefined) {
@@ -122,7 +132,16 @@ class LoginForm extends Component {
           <button type="submit" className="login-button">
             Login
           </button>
-          {showSubmitError && <p className="error-message">*{errorMsg}</p>}
+          <button
+            type="submit"
+            className="login-button guest"
+            onClick={this.onClickGuestLogin}
+          >
+            Guest Login
+          </button>
+          {showSubmitError && isGuestLoginAccess === false && (
+            <p className="error-message">*{errorMsg}</p>
+          )}
         </form>
       </div>
     )
